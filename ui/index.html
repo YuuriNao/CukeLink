@@ -1,0 +1,310 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CukeLink</title>
+    <style>
+      :root {
+        --bg1: #f6f3ee;
+        --bg2: #e7efe4;
+        --ink: #1e1e1e;
+        --muted: #5b5b5b;
+        --accent: #2f6f4e;
+        --accent-2: #1f4f38;
+        --card: #ffffff;
+        --shadow: rgba(20, 25, 20, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Noto Sans CJK SC", system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+        background: radial-gradient(1200px 800px at 10% 10%, var(--bg2), var(--bg1));
+        min-height: 100vh;
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 36px 24px 64px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 32px;
+        letter-spacing: 0.5px;
+      }
+      .tag {
+        font-size: 12px;
+        color: #fff;
+        background: var(--accent);
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .layout {
+        display: grid;
+        gap: 16px;
+        margin-top: 20px;
+      }
+      .top-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px var(--shadow);
+        padding: 16px;
+      }
+      .status-card {
+        padding: 18px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0 0 10px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d6d6d6;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+      button {
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button.secondary {
+        background: #e9efe8;
+        color: var(--accent-2);
+      }
+      .status {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        background: #f5f7f5;
+        border-radius: 10px;
+        padding: 10px;
+        max-height: 260px;
+        overflow: auto;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f6faf7;
+      }
+      .summary-label { color: var(--muted); font-size: 13px; }
+      .summary-value { font-weight: 600; }
+      .right-actions { display: flex; gap: 8px; align-items: center; }
+      @media (max-width: 760px) {
+        .top-grid {
+          grid-template-columns: 1fr;
+        }
+        .summary {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div>
+          <h1>CukeLink</h1>
+          <div class="sub">Nebula 优先直连，失败时切换到 rathole 转发</div>
+        </div>
+        <div class="right-actions">
+          <button class="secondary" onclick="toggleDebug()">Debug</button>
+          <div class="tag">Local UI</div>
+        </div>
+      </header>
+
+      <section class="layout">
+        <div class="top-grid">
+          <div class="card">
+            <h2>连接参数</h2>
+            <p class="sub">修改后点击保存</p>
+            <label class="sub">Peer IP</label>
+            <input id="peerIp" placeholder="192.168.100.3" />
+            <div style="height: 8px"></div>
+            <label class="sub">Rathole 服务器</label>
+            <input id="remoteAddr" placeholder="x.x.x.x:2333" />
+            <div style="height: 8px"></div>
+            <label class="sub">服务名</label>
+            <input id="serviceName" placeholder="mc_server" />
+            <div style="height: 8px"></div>
+            <label class="sub">本地转发端口</label>
+            <input id="localPort" type="number" min="1" max="65535" placeholder="25565" />
+            <div style="height: 12px"></div>
+            <div class="row">
+              <button onclick="saveConfig()">保存</button>
+              <button class="secondary" onclick="refreshStatus()">刷新</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>进程控制</h2>
+            <p class="sub">启动/停止 Nebula 与 rathole</p>
+            <div class="row">
+              <button onclick="runAction('/nebula/start')">启动 Nebula</button>
+              <button class="secondary" onclick="runAction('/nebula/stop')">停止 Nebula</button>
+            </div>
+            <div style="height: 10px"></div>
+            <div class="row">
+              <button onclick="runAction('/agent/restart-relay')">启动/重启 rathole</button>
+              <button class="secondary" onclick="runAction('/rathole/stop')">停止 rathole</button>
+            </div>
+            <div style="height: 10px"></div>
+            <div class="row">
+              <button class="secondary" onclick="exitAgent()">退出 Agent</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card status-card">
+          <h2>当前状态</h2>
+          <p class="sub">仅显示关键连接信息</p>
+          <div class="summary" id="summaryBox"></div>
+          <div style="height: 10px"></div>
+          <div class="status" id="statusBox" style="display: none">loading...</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      async function post(path, body) {
+        const res = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body ? JSON.stringify(body) : "{}",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const tail = Array.isArray(data.log_tail) ? "\n\n" + data.log_tail.join("\n") : "";
+          throw new Error((data.error || "request_failed") + tail);
+        }
+        await refreshStatus();
+        return data;
+      }
+
+      async function runAction(path) {
+        try {
+          await post(path);
+        } catch (e) {
+          alert(`操作失败: ${e.message}`);
+        }
+      }
+
+      function renderSummary(data) {
+        const cfg = data.config || {};
+        const procs = data.procs || [];
+        const nebula = procs.find((p) => p.name === "nebula");
+        const rathole = procs.find((p) => p.name === "rathole");
+        const rows = [
+          ["Nebula", nebula ? `运行中 (pid ${nebula.pid})` : "未运行"],
+          ["Rathole", rathole ? `运行中 (pid ${rathole.pid})` : "未运行"],
+          ["Peer IP", cfg.peer_probe?.ip || "-"],
+          ["中继服务器", cfg.rathole?.remote_addr || "-"],
+          ["服务名", cfg.rathole?.service_name || "-"],
+          ["本地端口", cfg.rathole?.local_port || "-"],
+        ];
+        document.getElementById("summaryBox").innerHTML = rows
+          .map(([label, value]) => `<div class="summary-row"><div class="summary-label">${label}</div><div class="summary-value">${value}</div></div>`)
+          .join("");
+      }
+
+      function isEditingInput() {
+        const active = document.activeElement;
+        if (!active) return false;
+        return ["peerIp", "remoteAddr", "serviceName", "localPort"].includes(active.id);
+      }
+
+      async function refreshStatus() {
+        const res = await fetch("/status");
+        const data = await res.json();
+        renderSummary(data);
+        document.getElementById("statusBox").textContent = JSON.stringify(data, null, 2);
+        if (!isEditingInput()) {
+          const cfg = data.config || {};
+          document.getElementById("peerIp").value = cfg.peer_probe?.ip || "";
+          document.getElementById("remoteAddr").value = cfg.rathole?.remote_addr || "";
+          document.getElementById("serviceName").value = cfg.rathole?.service_name || "";
+          document.getElementById("localPort").value = cfg.rathole?.local_port || "";
+        }
+      }
+
+      async function saveConfig() {
+        try {
+          const peerIp = document.getElementById("peerIp").value.trim();
+          const remoteAddr = document.getElementById("remoteAddr").value.trim();
+          const serviceName = document.getElementById("serviceName").value.trim();
+          const localPort = parseInt(document.getElementById("localPort").value.trim(), 10);
+          if (peerIp) await post("/peer/ip", { ip: peerIp });
+          if (remoteAddr) await post("/rathole/remote", { remote_addr: remoteAddr });
+          if (serviceName) await post("/rathole/service", { service_name: serviceName });
+          if (!Number.isNaN(localPort) && localPort >= 1 && localPort <= 65535) {
+            await post("/rathole/port", { local_port: localPort });
+          }
+        } catch (e) {
+          alert(`保存失败: ${e.message}`);
+        }
+      }
+
+      function toggleDebug() {
+        const box = document.getElementById("statusBox");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+      }
+
+      async function exitAgent() {
+        try {
+          await fetch("/agent/exit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          });
+        } finally {
+          window.close();
+          setTimeout(() => {
+            window.open("", "_self");
+            window.close();
+          }, 80);
+          setTimeout(() => {
+            location.replace("about:blank");
+          }, 160);
+        }
+      }
+
+      refreshStatus();
+      setInterval(refreshStatus, 5000);
+    </script>
+  </body>
+</html>
+

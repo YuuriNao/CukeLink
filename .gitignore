@@ -1,0 +1,45 @@
+# Python cache / local env
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# Build / package outputs
+build/
+dist/
+release/
+*.spec
+*.zip
+*.exe
+
+# Runtime state / logs
+runtime/
+*.log
+
+# Local artifacts / temporary exports
+artifacts/
+*.tmp
+*.bak
+
+# Nebula sensitive files
+nebula/*.crt
+nebula/*.key
+nebula/ca.*
+nebula/*.old
+scripts/*.crt
+scripts/*.key
+scripts/ca.*
+
+# Rathole local runtime config / binaries
+tools/rathole/client.toml
+tools/rathole/server.toml
+tools/rathole/*.exe
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+Desktop.ini
